@@ -1,0 +1,29 @@
+CREATE TABLE IF NOT EXISTS resumes (
+  id SERIAL PRIMARY KEY,
+  candidate_name VARCHAR(255) NOT NULL,
+  file_name VARCHAR(255) NOT NULL,
+  file_path TEXT NOT NULL,
+  extracted_text TEXT,
+  created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS job_descriptions (
+  id SERIAL PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  jd_text TEXT NOT NULL,
+  created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS analysis_results (
+  id SERIAL PRIMARY KEY,
+  resume_id INTEGER NOT NULL REFERENCES resumes(id) ON DELETE CASCADE,
+  jd_id INTEGER NOT NULL REFERENCES job_descriptions(id) ON DELETE CASCADE,
+  score NUMERIC(5, 2) NOT NULL DEFAULT 0,
+  rank INTEGER NOT NULL DEFAULT 0,
+  matching_skills JSONB NOT NULL DEFAULT '[]'::jsonb,
+  missing_skills JSONB NOT NULL DEFAULT '[]'::jsonb,
+  experience_score NUMERIC(5, 2) NOT NULL DEFAULT 0,
+  education_score NUMERIC(5, 2) NOT NULL DEFAULT 0,
+  semantic_score NUMERIC(5, 2) NOT NULL DEFAULT 0,
+  created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
+);

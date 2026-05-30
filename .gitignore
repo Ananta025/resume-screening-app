@@ -1,0 +1,62 @@
+# Node / Next.js
+node_modules/
+.next/
+out/
+dist/
+build/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Python
+.venv/
+venv/
+env/
+ENV/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.sqlite3
+*.egg-info/
+dist/
+build/
+*.egg
+*.whl
+
+# Caches
+.mypy_cache/
+.pytest_cache/
+.cache/
+
+# Environment files
+.env
+.env.*
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Coverage
+.coverage
+htmlcov/
+
+# Editor swap files
+*~
+*.swp
+
+# IDE
+.idea/
+
+# Docker-compose override (local)
+docker-compose.override.yml
