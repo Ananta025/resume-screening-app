@@ -8,6 +8,7 @@ from sqlalchemy.orm import Session
 from app.core.config import settings
 from app.core.database import get_db
 from app.models.resume import Resume
+from app.services.resume_parser import resume_parser
 from app.schemas.resume_schema import ResumeFileResponse
 from app.schemas.upload_schema import UploadResponse, UploadedFileInfo
 from app.utils.helpers import (
@@ -39,7 +40,7 @@ async def upload_resume(
 
     try:
         for file in files:
-            validate_upload_extension(file.filename)
+            validate_upload_extension(file.filename, {".pdf", ".docx"})
 
             storage_name = build_storage_filename(file.filename or "resume")
             storage_path = Path(settings.upload_dir) / "resumes" / storage_name
@@ -47,9 +48,21 @@ async def upload_resume(
             storage_path.write_bytes(contents)
             stored_paths.append(storage_path)
 
-            parsed_resume = resume_parser.parse_resume(str(storage_path))
-            extracted_text = resume_parser.parse_file(str(storage_path)).full_text
-            display_name = candidate_name.strip() if candidate_name else parsed_resume["name"] or build_candidate_display_name(file.filename)
+            try:
+                parsed_resume = resume_parser.parse_resume(str(storage_path))
+            except Exception as exc:
+                logger.exception("Resume parsing failed")
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Resume parsing failed: {str(exc)}",
+                ) from exc
+
+            extracted_text = parsed_resume.get("full_text", "")
+            display_name = (
+                candidate_name.strip()
+                if candidate_name and candidate_name.strip()
+                else parsed_resume.get("name") or build_candidate_display_name(file.filename)
+            )
 
             resume = Resume(
                 candidate_name=display_name,

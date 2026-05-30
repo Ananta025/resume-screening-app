@@ -165,9 +165,11 @@ class ResumeParser:
         return {
             "name": parsed_resume.name,
             "email": parsed_resume.email,
+            "phone_number": parsed_resume.phone_number,
             "skills": parsed_resume.skills,
             "education": parsed_resume.education,
             "experience": parsed_resume.experience,
+            "full_text": parsed_resume.full_text,
         }
 
 
