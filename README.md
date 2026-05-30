@@ -29,6 +29,13 @@ A full-stack application for screening resumes against a job description, rankin
 ## Project Structure
 - `frontend/` - Next.js client application
 - `backend/` - FastAPI server and database models
+- `docs/` - architecture, scoring, and API documentation
+
+## Documentation
+
+- [Architecture overview](docs/architecture.md)
+- [Scoring approach](docs/scoring-approach.md)
+- [API documentation](docs/api-documentation.md)
 
 ## Setup
 
