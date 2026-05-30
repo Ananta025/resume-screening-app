@@ -15,4 +15,5 @@ export interface JobDescriptionInput {
 export interface ScreeningRequest {
   resumes: UploadedDocument[];
   jobDescription: JobDescriptionInput;
+  analysisRequestId?: string;
 }

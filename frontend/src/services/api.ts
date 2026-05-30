@@ -12,6 +12,7 @@ import type {
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ?? "";
 const UPLOAD_CONTEXT_KEY = "resume-screening-upload-context";
+let latestAnalysisPromise: Promise<CandidateAnalysisResult> | null = null;
 
 export class ApiError extends Error {
   status: number;
@@ -27,6 +28,10 @@ export class ApiError extends Error {
 
 function buildUrl(path: string) {
   return `${API_BASE_URL}${path}`;
+}
+
+function generateAnalysisRequestId() {
+  return globalThis.crypto?.randomUUID?.() ?? `analysis-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 async function readErrorResponse(response: Response) {
@@ -183,13 +188,13 @@ export async function uploadJobDescriptionInput(jobDescription: ScreeningRequest
   return uploadJobDescriptionFile(file, jobDescription.fileName ?? "Job Description");
 }
 
-export async function analyzeBackendCandidates() {
+export async function analyzeBackendCandidates(analysisRequestId: string) {
   return requestJson<AnalysisResponseApi>("/api/analyze", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({}),
+    body: JSON.stringify({ analysis_request_id: analysisRequestId }),
   });
 }
 
@@ -267,14 +272,29 @@ function sortCandidatesByScore(candidates: Candidate[], sortBy: CandidateSortOpt
 }
 
 export async function fetchLatestAnalysis(): Promise<CandidateAnalysisResult> {
-  const response = await fetchResultsApi();
-  const candidates = sortCandidatesByScore(response.map(mapResultToCandidate), "score-desc");
+  if (latestAnalysisPromise) {
+    return latestAnalysisPromise;
+  }
 
-  return {
-    candidates,
-    summary: buildSummary(candidates),
-    generatedAt: candidates[0]?.createdAt ?? new Date().toISOString(),
-  };
+  latestAnalysisPromise = (async () => {
+    const response = await fetchResultsApi();
+    const uniqueResults = response.filter(
+      (item, index, self) => index === self.findIndex((candidate) => candidate.resume_id === item.resume_id),
+    );
+    const candidates = sortCandidatesByScore(uniqueResults.map(mapResultToCandidate), "score-desc");
+
+    return {
+      candidates,
+      summary: buildSummary(candidates),
+      generatedAt: candidates[0]?.createdAt ?? new Date().toISOString(),
+    };
+  })();
+
+  try {
+    return await latestAnalysisPromise;
+  } finally {
+    latestAnalysisPromise = null;
+  }
 }
 
 export async function fetchAnalysisResultById(id: number): Promise<Candidate> {
@@ -283,6 +303,7 @@ export async function fetchAnalysisResultById(id: number): Promise<Candidate> {
 }
 
 export async function analyzeCandidateResumes(request: ScreeningRequest): Promise<CandidateAnalysisResult> {
+  const analysisRequestId = request.analysisRequestId ?? generateAnalysisRequestId();
   const uploadedResumes = await uploadResumes(request.resumes.map((document) => {
     if (!document.file) {
       throw new ApiError(`Missing file for resume ${document.name}`, 400);
@@ -299,7 +320,7 @@ export async function analyzeCandidateResumes(request: ScreeningRequest): Promis
     uploadedAt: new Date().toISOString(),
   });
 
-  await analyzeBackendCandidates();
+  await analyzeBackendCandidates(analysisRequestId);
   return fetchLatestAnalysis();
 }
 

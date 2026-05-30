@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { analyzeCandidateResumes } from "@/services/api";
 import type { CandidateAnalysisResult } from "@/types/candidate";
 import type { ScreeningRequest } from "@/types/job";
@@ -9,9 +9,15 @@ import { useToast } from "@/hooks/useToast";
 export function useScreeningSubmission() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const analysisInProgress = useRef(false);
   const toast = useToast();
 
   const submit = useCallback(async (request: ScreeningRequest): Promise<CandidateAnalysisResult> => {
+    if (analysisInProgress.current) {
+      return Promise.reject(new Error("Analysis already in progress"));
+    }
+
+    analysisInProgress.current = true;
     setIsSubmitting(true);
     setError(null);
 
@@ -26,6 +32,7 @@ export function useScreeningSubmission() {
       throw exception;
     } finally {
       setIsSubmitting(false);
+      analysisInProgress.current = false;
     }
   }, [toast]);
 

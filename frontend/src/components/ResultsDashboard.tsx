@@ -27,9 +27,12 @@ export function ResultsDashboard() {
 
   const filteredCandidates = useMemo(() => {
     const candidates = analysis?.candidates ?? [];
+    const uniqueCandidates = candidates.filter(
+      (item, index, self) => index === self.findIndex((candidate) => candidate.resumeId === item.resumeId),
+    );
     const query = search.trim().toLowerCase();
     const searched = query
-      ? candidates.filter((candidate) => {
+      ? uniqueCandidates.filter((candidate) => {
           const haystack = [
             candidate.name,
             `${candidate.experienceScore}`,
@@ -41,7 +44,7 @@ export function ResultsDashboard() {
             .toLowerCase();
           return haystack.includes(query);
         })
-      : candidates;
+      : uniqueCandidates;
 
     return sortAnalysisCandidates(searched, sortBy);
   }, [analysis?.candidates, search, sortBy]);
@@ -106,7 +109,7 @@ export function ResultsDashboard() {
         <section className="relative space-y-6">
           {isLoading ? <LoadingOverlay label="Loading ranked candidates..." /> : null}
           {error ? (
-            <div className="rounded-[1.5rem] border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700">
+            <div className="rounded-3xl border border-rose-200 bg-rose-50 px-5 py-4 text-sm text-rose-700">
               <div className="flex items-center justify-between gap-3">
                 <span>{error}</span>
                 <button
@@ -119,7 +122,7 @@ export function ResultsDashboard() {
               </div>
             </div>
           ) : null}
-          <div className="rounded-[2rem] border border-slate-200 bg-white/80 p-5 shadow-[0_20px_50px_rgba(15,23,42,0.08)] backdrop-blur sm:p-6">
+          <div className="rounded-4xl border border-slate-200 bg-white/80 p-5 shadow-[0_20px_50px_rgba(15,23,42,0.08)] backdrop-blur sm:p-6">
             <div className="flex flex-col gap-4 border-b border-slate-200 pb-5 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.28em] text-slate-500">Results dashboard</p>
@@ -137,7 +140,7 @@ export function ResultsDashboard() {
             </div>
 
             <div className="mt-5 grid gap-4 lg:grid-cols-[1.3fr_0.7fr]">
-              <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
                 <label className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Search Candidate</label>
                 <input
                   value={search}
@@ -149,7 +152,7 @@ export function ResultsDashboard() {
                   className="mt-3 w-full rounded-[1.25rem] border border-slate-300 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition placeholder:text-slate-400 focus:border-slate-900"
                 />
               </div>
-              <div className="rounded-[1.5rem] border border-slate-200 bg-slate-50 p-4">
+              <div className="rounded-3xl border border-slate-200 bg-slate-50 p-4">
                 <label className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">Sort by Score</label>
                 <select
                   value={sortBy}

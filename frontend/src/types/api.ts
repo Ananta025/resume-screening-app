@@ -17,14 +17,23 @@ export interface AnalysisResult {
   id: number;
   resume_id: number;
   jd_id: number;
+  analysis_request_id?: string | null;
   score: number;
   final_score: number;
   rank: number;
+  skills_score: number;
   matching_skills: string[];
   missing_skills: string[];
   experience_score: number;
   education_score: number;
   semantic_score: number;
+  score_breakdown?: {
+    skills_score: number;
+    experience_score: number;
+    education_score: number;
+    semantic_score: number;
+    final_score: number;
+  };
   created_at: string;
 }
 

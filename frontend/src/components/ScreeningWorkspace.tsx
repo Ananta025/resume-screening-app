@@ -18,6 +18,7 @@ export function ScreeningWorkspace() {
   const [resumes, setResumes] = useState<UploadedDocument[]>([]);
   const [jobDescription, setJobDescription] = useState(DEFAULT_JD);
   const [jdFile, setJdFile] = useState<UploadedDocument | undefined>();
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [summary, setSummary] = useState<CandidateAnalysisSummary>({
     totalResumes: 0,
     candidatesProcessed: 0,
@@ -52,6 +53,11 @@ export function ScreeningWorkspace() {
   }, []);
 
   async function handleAnalyze() {
+    if (isAnalyzing || isSubmitting) {
+      return;
+    }
+
+    setIsAnalyzing(true);
     try {
       const analysis = await submit({
         resumes,
@@ -65,6 +71,8 @@ export function ScreeningWorkspace() {
       router.push("/results");
     } catch {
       // toast is handled by the hook
+    } finally {
+      setIsAnalyzing(false);
     }
   }
 
@@ -76,11 +84,11 @@ export function ScreeningWorkspace() {
     setSummary((current) => ({ ...current, totalResumes: 0 }));
   }
 
-  const canAnalyze = !isSubmitting && resumes.length > 0 && jobDescription.trim().length > 0;
+  const canAnalyze = !isSubmitting && !isAnalyzing && resumes.length > 0 && jobDescription.trim().length > 0;
 
   return (
     <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 lg:px-8">
-      <section className="relative overflow-hidden rounded-[2rem] border border-slate-200 bg-white/80 p-5 shadow-[0_20px_50px_rgba(15,23,42,0.08)] backdrop-blur sm:p-6">
+      <section className="relative overflow-hidden rounded-4xl border border-slate-200 bg-white/80 p-5 shadow-[0_20px_50px_rgba(15,23,42,0.08)] backdrop-blur sm:p-6">
         {isSubmitting ? <LoadingOverlay /> : null}
         <div className="flex flex-col gap-3 border-b border-slate-200 pb-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
@@ -115,7 +123,7 @@ export function ScreeningWorkspace() {
                 disabled={!canAnalyze}
                 className="inline-flex h-12 items-center justify-center rounded-full bg-slate-950 px-6 text-sm font-semibold text-white transition disabled:cursor-not-allowed disabled:bg-slate-300 hover:bg-slate-800"
               >
-                Analyze Candidates
+                {isAnalyzing || isSubmitting ? "Analyzing..." : "Analyze Candidates"}
               </button>
               <button
                 type="button"
